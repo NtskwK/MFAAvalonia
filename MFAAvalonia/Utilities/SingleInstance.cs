@@ -104,7 +104,7 @@ public static class SingleInstance
         {
             // Initialize Avalonia application minimally without starting the main loop
             var builder = Program.BuildAvaloniaApp();
-            // Use SetupWithoutStarting extension - creates Application instance without starting lifetime
+            // Create a lifetime with explicit shutdown mode to prevent automatic app termination
             var lifetime = new ClassicDesktopStyleApplicationLifetime
             {
                 ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown
@@ -137,18 +137,32 @@ public static class SingleInstance
         });
 
         // Wait for window to close (with timeout to prevent hanging)
-        // Use GetAwaiter().GetResult() for better exception propagation
+        // This is called during startup before the main UI thread is active, so blocking is acceptable
         try
         {
+            // Wait with timeout
             if (!task.Wait(TimeSpan.FromSeconds(30)))
             {
                 throw new TimeoutException("Window display timed out after 30 seconds");
             }
+            
+            // Check for exceptions in the task
+            if (task.IsFaulted && task.Exception != null)
+            {
+                // Unwrap and rethrow the actual exception
+                var innerEx = task.Exception.InnerException;
+                if (innerEx != null)
+                {
+                    System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(innerEx).Throw();
+                }
+                throw task.Exception;
+            }
         }
-        catch (AggregateException ex)
+        catch (AggregateException ex) when (ex.InnerException != null)
         {
-            // Unwrap aggregate exception and rethrow inner exception
-            throw ex.InnerException ?? ex;
+            // Unwrap aggregate exception and rethrow inner exception with preserved stack trace
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+            throw; // This line won't be reached but satisfies the compiler
         }
     }
 
