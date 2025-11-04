@@ -123,74 +123,28 @@ public static class SingleInstance
 
     private static void ShowAvaloniaWindow(string message)
     {
-        // Check if Avalonia Application is already initialized
-        if (Application.Current == null)
+        // Initialize and run a minimal Avalonia application just to show the dialog
+        var builder = Program.BuildAvaloniaApp();
+        
+        // Use a custom lifetime that will show the dialog and then exit
+        var lifetime = new ClassicDesktopStyleApplicationLifetime
         {
-            // Initialize Avalonia application minimally without starting the main loop
-            // Note: We use Program.BuildAvaloniaApp() to ensure consistent configuration with main app
-            // This coupling is intentional as we need the same styles, themes, and resources
-            var builder = Program.BuildAvaloniaApp();
-            // Create a lifetime with explicit shutdown mode to prevent automatic app termination
-            var lifetime = new ClassicDesktopStyleApplicationLifetime
-            {
-                ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown
-            };
-            builder.SetupWithLifetime(lifetime);
-        }
-
-        // Show the window on UI thread and wait for it to close
-        var task = Dispatcher.UIThread.InvokeAsync(async () =>
+            ShutdownMode = Avalonia.Controls.ShutdownMode.OnMainWindowClose
+        };
+        
+        builder.SetupWithLifetime(lifetime);
+        
+        // Set the main window to our dialog
+        var window = new AlreadyRunningWindow
         {
-            try
-            {
-                var window = new AlreadyRunningWindow
-                {
-                    MessageText = message
-                };
-                // Use Show instead of ShowDialog since we don't have a parent window
-                window.Show();
-                // Activate window to bring it to foreground and ensure it receives focus
-                window.Activate();
-                
-                // Wait for window to close
-                var tcs = new TaskCompletionSource<bool>();
-                window.Closed += (s, e) => tcs.TrySetResult(true);
-                await tcs.Task;
-            }
-            catch (Exception ex)
-            {
-                // If window fails, throw to trigger console fallback
-                throw new InvalidOperationException("Failed to show Avalonia window", ex);
-            }
-        });
-
-        // Wait for window to close (with timeout to prevent hanging)
-        // This is called during startup before the main UI thread is active, so blocking is acceptable
-        try
-        {
-            // Wait with timeout
-            if (!task.Wait(TimeSpan.FromSeconds(WindowDisplayTimeoutSeconds)))
-            {
-                throw new TimeoutException($"Window display timed out after {WindowDisplayTimeoutSeconds} seconds");
-            }
-            
-            // Check for exceptions in the task
-            if (task.IsFaulted && task.Exception != null)
-            {
-                // Unwrap and rethrow the actual exception
-                var innerEx = task.Exception.InnerException;
-                if (innerEx != null)
-                {
-                    System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(innerEx).Throw();
-                }
-                throw task.Exception;
-            }
-        }
-        catch (AggregateException ex) when (ex.InnerException != null)
-        {
-            // Unwrap aggregate exception and rethrow inner exception with preserved stack trace
-            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-        }
+            MessageText = message
+        };
+        
+        lifetime.MainWindow = window;
+        
+        // Start the application - this will block until the window is closed
+        // The window closing will trigger app shutdown due to OnMainWindowClose
+        lifetime.Start(Array.Empty<string>());
     }
 
     /// <summary>
