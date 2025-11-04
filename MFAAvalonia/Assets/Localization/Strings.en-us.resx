@@ -1187,4 +1187,12 @@
     <data name="SwitchUiUpdateSourceToGithub" xml:space="preserve">
         <value>Since Mirror Chyan cannot specify a specific version for update, please go to update settings and switch the update source to GitHub.</value>
     </data>
+    <data name="AlreadyRunningTitle" xml:space="preserve">
+        <value>MAA Single Instance Detection</value>
+    </data>
+    <data name="AlreadyRunningMessage" xml:space="preserve">
+        <value>Only one instance can run from the same path!
+
+To run multiple instances of MAA, please copy MAA to a different folder and configure it to use a different MAA instance, the same adb, and different emulator addresses for multi-instance operation.</value>
+    </data>
 </root>

@@ -3001,5 +3001,23 @@ namespace MFAAvalonia.Assets.Localization {
                 return ResourceManager.GetString("Yes", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MAA 单实例检测.
+        /// </summary>
+        public static string AlreadyRunningTitle {
+            get {
+                return ResourceManager.GetString("AlreadyRunningTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 同一路径下只能启动一个实例!....
+        /// </summary>
+        public static string AlreadyRunningMessage {
+            get {
+                return ResourceManager.GetString("AlreadyRunningMessage", resourceCulture);
+            }
+        }
     }
 }

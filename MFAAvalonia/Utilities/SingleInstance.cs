@@ -19,7 +19,6 @@ namespace MFAAvalonia.Utilities;
 public static class SingleInstance
 {
     private const int WindowDisplayTimeoutSeconds = 30;
-    private const string AlreadyRunningMessage = "同一路径下只能启动一个实例!\n\n如需多开 MAA，请复制一份新的 MAA 到其他文件夹下，并设置使用不同的 MAA、相同的 adb 和不同的模拟器地址进行多开操作。";
     
     private static Mutex? _mutex;
     private static string? _mutexName;
@@ -100,18 +99,22 @@ public static class SingleInstance
     /// </summary>
     public static void ShowAlreadyRunningMessage()
     {
+        // Get localized strings
+        string title = Assets.Localization.Strings.AlreadyRunningTitle;
+        string message = Assets.Localization.Strings.AlreadyRunningMessage;
+        
         try
         {
             // Try to show Avalonia window
-            ShowAvaloniaWindow(AlreadyRunningMessage);
+            ShowAvaloniaWindow(message);
         }
         catch (Exception ex)
         {
             // Fallback to console output in headless/CLI environments
             Console.WriteLine("===================================");
-            Console.WriteLine("MAA 单实例检测");
+            Console.WriteLine(title);
             Console.WriteLine("===================================");
-            Console.WriteLine(AlreadyRunningMessage);
+            Console.WriteLine(message);
             Console.WriteLine($"\nMutex Name: {_mutexName}");
             Console.WriteLine($"Error showing GUI: {ex.Message}");
             Console.WriteLine("===================================");

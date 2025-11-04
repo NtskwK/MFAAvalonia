@@ -1195,4 +1195,12 @@
     <data name="SwitchUiUpdateSourceToGithub" xml:space="preserve">
         <value>因 Mirror 酱无法指定特定版本进行更新，请到更新设置中把更新源切换为 GitHub。</value>
     </data>
+    <data name="AlreadyRunningTitle" xml:space="preserve">
+        <value>MAA 单实例检测</value>
+    </data>
+    <data name="AlreadyRunningMessage" xml:space="preserve">
+        <value>同一路径下只能启动一个实例!
+
+如需多开 MAA，请复制一份新的 MAA 到其他文件夹下，并设置使用不同的 MAA、相同的 adb 和不同的模拟器地址进行多开操作。</value>
+    </data>
 </root>

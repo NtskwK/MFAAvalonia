@@ -401,4 +401,6 @@ public static class LangKeys
 	public static readonly string FileLoadFailed = "FileLoadFailed";
 	public static readonly string CopyToClipboard = "CopyToClipboard";
 	public static readonly string UseDirectMLSupportedDevice = "UseDirectMLSupportedDevice";
+public static readonly string AlreadyRunningTitle = "AlreadyRunningTitle";
+public static readonly string AlreadyRunningMessage = "AlreadyRunningMessage";
 }
