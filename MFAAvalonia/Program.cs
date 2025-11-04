@@ -5,6 +5,7 @@ using MFAAvalonia.Configuration;
 using MFAAvalonia.Views.Windows;
 using MFAAvalonia.Helper;
 using MFAAvalonia.ViewModels.Windows;
+using MFAAvalonia.Utilities;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -45,12 +46,21 @@ sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        // Check for single instance - use path-based mutex to allow multiple instances from different folders
+        if (!SingleInstance.TryAcquire(out var mutexName))
+        {
+            // Another instance is already running from this path
+            SingleInstance.ShowAlreadyRunningMessage();
+            return;
+        }
+
         try
         {
             Directory.SetCurrentDirectory(AppContext.BaseDirectory);
             var parsedArgs = ParseArguments(args);
             LoggerHelper.Info("Args: " + JsonConvert.SerializeObject(parsedArgs, Formatting.Indented));
             LoggerHelper.Info("MFA version: " + RootViewModel.Version);
+            LoggerHelper.Info("Single instance mutex: " + mutexName);
             Args = parsedArgs;
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args, ShutdownMode.OnMainWindowClose);
@@ -58,6 +68,11 @@ sealed class Program
         catch (Exception e)
         {
             LoggerHelper.Error($"总异常捕获：{e}");
+        }
+        finally
+        {
+            // Release the mutex when application exits
+            SingleInstance.Release();
         }
     }
 
