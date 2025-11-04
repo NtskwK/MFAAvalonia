@@ -17,6 +17,9 @@ namespace MFAAvalonia.Utilities;
 /// </summary>
 public static class SingleInstance
 {
+    private const int WindowDisplayTimeoutSeconds = 30;
+    private const string AlreadyRunningMessage = "同一路径下只能启动一个实例!\n\n如需多开 MAA，请复制一份新的 MAA 到其他文件夹下，并设置使用不同的 MAA、相同的 adb 和不同的模拟器地址进行多开操作。";
+    
     private static Mutex? _mutex;
     private static string? _mutexName;
 
@@ -77,12 +80,10 @@ public static class SingleInstance
     /// </summary>
     public static void ShowAlreadyRunningMessage()
     {
-        const string message = "同一路径下只能启动一个实例!\n\n如需多开 MAA，请复制一份新的 MAA 到其他文件夹下，并设置使用不同的 MAA、相同的 adb 和不同的模拟器地址进行多开操作。";
-
         try
         {
             // Try to show Avalonia window
-            ShowAvaloniaWindow(message);
+            ShowAvaloniaWindow(AlreadyRunningMessage);
         }
         catch (Exception ex)
         {
@@ -90,7 +91,7 @@ public static class SingleInstance
             Console.WriteLine("===================================");
             Console.WriteLine("MAA 单实例检测");
             Console.WriteLine("===================================");
-            Console.WriteLine(message);
+            Console.WriteLine(AlreadyRunningMessage);
             Console.WriteLine($"\nMutex Name: {_mutexName}");
             Console.WriteLine($"Error showing GUI: {ex.Message}");
             Console.WriteLine("===================================");
@@ -141,9 +142,9 @@ public static class SingleInstance
         try
         {
             // Wait with timeout
-            if (!task.Wait(TimeSpan.FromSeconds(30)))
+            if (!task.Wait(TimeSpan.FromSeconds(WindowDisplayTimeoutSeconds)))
             {
-                throw new TimeoutException("Window display timed out after 30 seconds");
+                throw new TimeoutException($"Window display timed out after {WindowDisplayTimeoutSeconds} seconds");
             }
             
             // Check for exceptions in the task
@@ -154,6 +155,7 @@ public static class SingleInstance
                 if (innerEx != null)
                 {
                     System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(innerEx).Throw();
+                    throw; // Unreachable but satisfies compiler flow analysis
                 }
                 throw task.Exception;
             }
@@ -162,7 +164,7 @@ public static class SingleInstance
         {
             // Unwrap aggregate exception and rethrow inner exception with preserved stack trace
             System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-            throw; // This line won't be reached but satisfies the compiler
+            throw; // Unreachable but satisfies compiler flow analysis
         }
     }
 
