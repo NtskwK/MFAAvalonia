@@ -104,6 +104,8 @@ public static class SingleInstance
         if (Application.Current == null)
         {
             // Initialize Avalonia application minimally without starting the main loop
+            // Note: We use Program.BuildAvaloniaApp() to ensure consistent configuration with main app
+            // This coupling is intentional as we need the same styles, themes, and resources
             var builder = Program.BuildAvaloniaApp();
             // Create a lifetime with explicit shutdown mode to prevent automatic app termination
             var lifetime = new ClassicDesktopStyleApplicationLifetime
@@ -124,6 +126,8 @@ public static class SingleInstance
                 };
                 // Use Show instead of ShowDialog since we don't have a parent window
                 window.Show();
+                // Activate window to bring it to foreground and ensure it receives focus
+                window.Activate();
                 
                 // Wait for window to close
                 var tcs = new TaskCompletionSource<bool>();

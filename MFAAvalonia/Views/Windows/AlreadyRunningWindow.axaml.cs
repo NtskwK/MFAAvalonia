@@ -12,7 +12,7 @@ namespace MFAAvalonia.Views.Windows;
 public partial class AlreadyRunningWindow : SukiWindow
 {
     public static readonly StyledProperty<string?> MessageTextProperty =
-        AvaloniaProperty.Register<AlreadyRunningWindow, string?>(nameof(MessageText), string.Empty);
+        AvaloniaProperty.Register<AlreadyRunningWindow, string?>(nameof(MessageText), null);
 
     /// <summary>
     /// The message to display to the user
