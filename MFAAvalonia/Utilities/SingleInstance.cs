@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using MFAAvalonia.Views.Windows;
@@ -101,9 +102,14 @@ public static class SingleInstance
         // Check if Avalonia Application is already initialized
         if (Application.Current == null)
         {
-            // Initialize Avalonia application minimally
+            // Initialize Avalonia application minimally without starting the main loop
             var builder = Program.BuildAvaloniaApp();
-            builder.SetupWithoutStarting();
+            // Use SetupWithoutStarting extension - creates Application instance without starting lifetime
+            var lifetime = new ClassicDesktopStyleApplicationLifetime
+            {
+                ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown
+            };
+            builder.SetupWithLifetime(lifetime);
         }
 
         // Show the window on UI thread and wait for it to close
@@ -115,7 +121,13 @@ public static class SingleInstance
                 {
                     MessageText = message
                 };
-                await window.ShowDialog<bool?>(null);
+                // Use Show instead of ShowDialog since we don't have a parent window
+                window.Show();
+                
+                // Wait for window to close
+                var tcs = new TaskCompletionSource<bool>();
+                window.Closed += (s, e) => tcs.TrySetResult(true);
+                await tcs.Task;
             }
             catch (Exception ex)
             {
@@ -125,7 +137,19 @@ public static class SingleInstance
         });
 
         // Wait for window to close (with timeout to prevent hanging)
-        task.Wait(TimeSpan.FromSeconds(30));
+        // Use GetAwaiter().GetResult() for better exception propagation
+        try
+        {
+            if (!task.Wait(TimeSpan.FromSeconds(30)))
+            {
+                throw new TimeoutException("Window display timed out after 30 seconds");
+            }
+        }
+        catch (AggregateException ex)
+        {
+            // Unwrap aggregate exception and rethrow inner exception
+            throw ex.InnerException ?? ex;
+        }
     }
 
     /// <summary>

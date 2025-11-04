@@ -39,6 +39,6 @@ public partial class AlreadyRunningWindow : SukiWindow
     /// </summary>
     private void Ok_Click(object? sender, RoutedEventArgs e)
     {
-        Close(true);
+        Close();
     }
 }
