@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -43,17 +44,36 @@ public static class SingleInstance
         }
 
         // Generate mutex name based on path hash
-        mutexName = "MAA_" + Sha256Hex(exePath);
+        // Use "Local\" prefix on Windows for session-local mutex, no prefix on Unix
+        string hashPart = Sha256Hex(exePath);
+        mutexName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) 
+            ? $"Local\\MAA_{hashPart}" 
+            : $"MAA_{hashPart}";
         _mutexName = mutexName;
 
         try
         {
+            // Try to create or open the mutex
+            // If initiallyOwned is true and mutex already exists, this will wait to acquire it
+            // We use a non-blocking approach with TryOpenExisting first
+            if (Mutex.TryOpenExisting(mutexName, out _mutex))
+            {
+                // Mutex already exists, meaning another instance is running
+                // Don't acquire it, just return false
+                _mutex?.Dispose();
+                _mutex = null;
+                return false;
+            }
+            
+            // Mutex doesn't exist, create it with initial ownership
             _mutex = new Mutex(true, mutexName, out bool createdNew);
             return createdNew;
         }
         catch
         {
-            return false;
+            // If there's an error, assume we can't determine instance status
+            // Allow the app to run (fail-open) rather than fail-closed
+            return true;
         }
     }
 
