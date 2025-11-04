@@ -1188,11 +1188,11 @@
         <value>因 Mirror 醬無法指定特定版本進行更新，請到更新設定中把更新源切換為 GitHub。</value>
     </data>
     <data name="AlreadyRunningTitle" xml:space="preserve">
-        <value>MAA 單實例檢測</value>
+        <value>MFAAvalonia</value>
     </data>
     <data name="AlreadyRunningMessage" xml:space="preserve">
         <value>同一路徑下只能啟動一個實例!
 
-如需多開 MAA，請複製一份新的 MAA 到其他資料夾下，並設定使用不同的 MAA、相同的 adb 和不同的模擬器位址進行多開操作。</value>
+如需多開，請複製一份新的到其他資料夾下，並設定使用不同的實例、相同的 adb 和不同的模擬器位址進行多開操作。</value>
     </data>
 </root>
