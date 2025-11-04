@@ -159,7 +159,6 @@ public static class SingleInstance
                 if (innerEx != null)
                 {
                     System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(innerEx).Throw();
-                    throw; // Unreachable but satisfies compiler flow analysis
                 }
                 throw task.Exception;
             }
@@ -168,7 +167,6 @@ public static class SingleInstance
         {
             // Unwrap aggregate exception and rethrow inner exception with preserved stack trace
             System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-            throw; // Unreachable but satisfies compiler flow analysis
         }
     }
 
