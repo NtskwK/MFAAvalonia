@@ -11,6 +11,18 @@ namespace MFAAvalonia.Helper;
 
 public static class DirectoryMerger
 {
+    // DLL白名单：在这些文件夹中的DLL文件不会被跳过
+    private static readonly string[] DllWhitelistFolders = { "python" };
+
+    /// <summary>检查路径是否在DLL白名单中</summary>
+    private static bool IsInDllWhitelist(string path)
+    {
+        var normalizedPath = path.Replace('\\', '/');
+        return DllWhitelistFolders.Any(folder =>
+            normalizedPath.Contains($"/{folder}/", StringComparison.OrdinalIgnoreCase) ||
+            normalizedPath.Contains($"/{folder}", StringComparison.OrdinalIgnoreCase) && normalizedPath.EndsWith($"/{folder}", StringComparison.OrdinalIgnoreCase));
+    }
+
     // 用于传递进度状态的内部类（替代ref参数）
     private class MergeProgressState
     {
@@ -153,7 +165,7 @@ public static class DirectoryMerger
                         && !Path.GetFileName(tempPath).Contains("MFAAvalonia")
                         && !Path.GetFileName(tempPath).Contains(Process.GetCurrentProcess().MainModule?.ModuleName ?? "MFAAvalonia.exe"))
                     || Path.GetFileName(tempPath).Contains("interface.json", StringComparison.OrdinalIgnoreCase)
-                    || Path.GetExtension(tempPath).Equals(".dll", StringComparison.OrdinalIgnoreCase) && OperatingSystem.IsWindows()
+                    || Path.GetExtension(tempPath).Equals(".dll", StringComparison.OrdinalIgnoreCase) && OperatingSystem.IsWindows() && !IsInDllWhitelist(tempPath)
                     || !Path.GetFileName(tempPath).Contains("minicap.so", StringComparison.OrdinalIgnoreCase)
                     && Path.GetExtension(tempPath).Equals(".so", StringComparison.OrdinalIgnoreCase)
                     && OperatingSystem.IsLinux()

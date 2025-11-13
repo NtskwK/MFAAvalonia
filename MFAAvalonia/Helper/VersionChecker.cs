@@ -46,6 +46,18 @@ public static class VersionChecker
 {
     private static bool shouldShowToast = false;
 
+    // DLL白名单：在这些文件夹中的DLL文件不会被跳过
+    private static readonly string[] DllWhitelistFolders = { "python" };
+
+    /// <summary>检查路径是否在DLL白名单中</summary>
+    private static bool IsInDllWhitelist(string path)
+    {
+        var normalizedPath = path.Replace('\\', '/');
+        return DllWhitelistFolders.Any(folder =>
+            normalizedPath.Contains($"/{folder}/", StringComparison.OrdinalIgnoreCase) ||
+            normalizedPath.Contains($"/{folder}", StringComparison.OrdinalIgnoreCase) && normalizedPath.EndsWith($"/{folder}", StringComparison.OrdinalIgnoreCase));
+    }
+
     public enum VersionType
     {
         Alpha,
@@ -530,7 +542,7 @@ public static class VersionChecker
                                     {
                                         GlobalConfiguration.SetValue(ConfigurationKeys.DoNotShowAnnouncementAgain, bool.FalseString);
                                     }
-                                    if (Path.GetExtension(delPath).Equals(".dll", StringComparison.OrdinalIgnoreCase) && OperatingSystem.IsWindows()
+                                    if (Path.GetExtension(delPath).Equals(".dll", StringComparison.OrdinalIgnoreCase) && OperatingSystem.IsWindows() && !IsInDllWhitelist(delPath)
                                         || !Path.GetFileName(tempPath).Contains("minicap.so", StringComparison.OrdinalIgnoreCase) && Path.GetExtension(delPath).Equals(".so", StringComparison.OrdinalIgnoreCase) && OperatingSystem.IsLinux()
                                         || Path.GetExtension(delPath).Equals(".dylib", StringComparison.OrdinalIgnoreCase) && (OperatingSystem.IsMacOS() || OperatingSystem.IsIOS()))
                                     {
@@ -562,7 +574,7 @@ public static class VersionChecker
                                     && !Path.GetFileName(delPath).Contains("interface.json", StringComparison.OrdinalIgnoreCase)
                                     && !Path.GetFileName(delPath).Contains(Process.GetCurrentProcess().MainModule?.ModuleName ?? string.Empty))
                                 {
-                                    if (Path.GetExtension(delPath).Equals(".dll", StringComparison.OrdinalIgnoreCase) && OperatingSystem.IsWindows()
+                                    if (Path.GetExtension(delPath).Equals(".dll", StringComparison.OrdinalIgnoreCase) && OperatingSystem.IsWindows() && !IsInDllWhitelist(delPath)
                                         || !Path.GetFileName(tempPath).Contains("minicap.so", StringComparison.OrdinalIgnoreCase) && Path.GetExtension(delPath).Equals(".so", StringComparison.OrdinalIgnoreCase) && OperatingSystem.IsLinux()
                                         || Path.GetExtension(delPath).Equals(".dylib", StringComparison.OrdinalIgnoreCase) && (OperatingSystem.IsMacOS() || OperatingSystem.IsIOS()))
                                     {
